@@ -1,3 +1,4 @@
+import { access } from "fs";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -5,9 +6,9 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault;
+    console.log(email, password);
     if (!password || !email) {
       alert("Introduzca información");
       return localStorage.removeItem("info");
@@ -37,23 +38,24 @@ function Login() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email,
-          password,
+          email: email,
+          password: password,
         }),
       });
+
       if (!response.ok) {
         alert("Usuario o contraseña incorrectos");
       }
 
       const data = await response.json();
       localStorage.setItem(
-        "info",
+        "userInfo",
         JSON.stringify({
           id: data.id,
           name: data.name,
+          access: data.accessToken,
         })
       );
-      console.log("Respuesta del login:", data);
       window.location.href = "/dashboard";
     } catch (error) {
       console.error("Error en login:", error);
