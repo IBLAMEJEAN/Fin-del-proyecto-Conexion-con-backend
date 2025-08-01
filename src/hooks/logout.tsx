@@ -2,14 +2,17 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 
 const uselogout = () => {
-  const [isLoggedOut, setIsLoggedOut] = useState(false);
+  const router = useRouter();
 
   const handleLogout = () => {
-    localStorage.removeItem("info");
-    window.location.href = "/login";
+    //Elimina el token
+    localStorage.removeItem("token");
+
+    //Manda al login
+    router.push("/login");
   };
 
-  return { isLoggedOut, handleLogout };
+  return { handleLogout };
 };
 
 export default uselogout;

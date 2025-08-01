@@ -7,58 +7,55 @@ function Login() {
   const [password, setPassword] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault;
+    e.preventDefault();
     console.log(email, password);
-    if (!password || !email) {
+
+    if (!email || !password) {
       alert("Introduzca información");
-      return localStorage.removeItem("info");
+      return;
     }
+
     const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       alert("Correo no válido");
-      localStorage.removeItem("info");
       return;
     }
+
     if (/\s/.test(password)) {
       alert("La contraseña no debe contener espacios");
-      localStorage.removeItem("info");
       return;
     }
 
     if (password.length < 8) {
       alert("La contraseña debe tener al menos 8 caracteres");
-      localStorage.removeItem("info");
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:3005/login", {
+      const response = await fetch("http://192.168.1.101:3000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
+        body: JSON.stringify({ email, password}),
       });
-
       if (!response.ok) {
         alert("Usuario o contraseña incorrectos");
+        return;
       }
-
+      
       const data = await response.json();
-      localStorage.setItem(
-        "userInfo",
-        JSON.stringify({
-          id: data.id,
-          name: data.name,
-          access: data.accessToken,
-        })
-      );
-      window.location.href = "/dashboard";
+      console.log(data)
+
+      if(data.access_token){
+        localStorage.setItem("token", data.access_token);
+        window.location.href = "/dashboard";
+      } else {
+        alert("No se recibió un token válido");
+      }
     } catch (error) {
       console.error("Error en login:", error);
+      alert("Error de conexion con el servidor");
     }
   };
 

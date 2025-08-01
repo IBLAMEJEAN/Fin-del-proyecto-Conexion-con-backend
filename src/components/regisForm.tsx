@@ -6,37 +6,55 @@ function registerForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!name || !email || !password){
+      alert("Todos los campos son obligatorios");
+      return;
+    }
+
+    const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
+    if(!emailRegex.test(email)){
+      alert("Correo no válido");
+      return;
+    }
+
+    if(/\s/.test(password)){
+      alert("La contraseña no debe contener espacios");
+      return;
+    }
+
+    if(password.length < 8){
+      alert("La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
+
     try {
-      const response = await fetch("http://localhost:3005/register", {
+      const response = await fetch("http://192.168.1.101:3000/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-        }),
+        body: JSON.stringify({name, email, password}),
       });
 
       if (!response.ok) {
         alert("Error al registrar usuario");
+        return;
       }
+
       const data = await response.json();
-      console.log("Respuesta del registro:", data);
-      window.location.href = "/dashboard";
-      localStorage.setItem(
-        "info",
-        JSON.stringify({
-          id: data.id,
-          name: data.name,
-        })
-      );
-    } catch (error) {
+
+      if(data.accessToken){
+        localStorage.setItem("token", data.accessToken);
+        window.location.href = "/dashboard";
+      } else{
+        alert("Registro exitoso, pero no se recibió un token.");
+      }
+    } catch (error){
       console.error("Error en registro:", error);
+      alert("Error de conexión con el servidor");
     }
   };
 
