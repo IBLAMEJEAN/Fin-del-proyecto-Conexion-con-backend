@@ -1,6 +1,10 @@
-import loginForm from "@/components/loginForm";
+import LoginForm from "@/components/loginForm"; // ✅ Importación correcta (nota la mayúscula)
 import PublicRoute from "../../components/publicRoute";
 
 export default function Login() {
-  return loginForm();
+  return (
+    <PublicRoute>
+      <LoginForm />
+    </PublicRoute>
+  ); // ✅ Renderizando como componente JSX
 }

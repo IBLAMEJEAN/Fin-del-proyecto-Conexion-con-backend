@@ -1,14 +1,15 @@
-import { access } from "fs";
 import Link from "next/link";
 import { useState } from "react";
+import useAuth from "../hooks/useAuth"; // Ajusta la ruta si es necesario
+import Router from "next/router";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(email, password);
 
     if (!email || !password) {
       alert("Introduzca información");
@@ -32,24 +33,25 @@ function Login() {
     }
 
     try {
-      const response = await fetch("http://192.168.1.101:3000/login", {
+      const response = await fetch("http://localhost:3005/login", {
+        // ✅ Cambio de URL
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password}),
+        body: JSON.stringify({ email, password }),
       });
       if (!response.ok) {
         alert("Usuario o contraseña incorrectos");
         return;
       }
-      
-      const data = await response.json();
-      console.log(data)
 
-      if(data.access_token){
-        localStorage.setItem("token", data.access_token);
-        window.location.href = "/dashboard";
+      const data = await response.json();
+      console.log(data);
+
+      if (data.access_token) {
+        login(data.access_token);
+        console.log("Token correcto");
       } else {
         alert("No se recibió un token válido");
       }
