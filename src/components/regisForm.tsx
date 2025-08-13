@@ -31,12 +31,12 @@ function registerForm() {
     }
 
     try {
-      const response = await fetch("http://localhost:3005/register", {
+      const response = await fetch("https://biproyecto4.com.mx/user", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name: name, email: email, password: password }),
       });
 
       if (!response.ok) {
@@ -50,7 +50,7 @@ function registerForm() {
         localStorage.setItem("token", data.accessToken);
         window.location.href = "/login";
       } else {
-        alert("Registro exitoso, pero no se recibió un token.");
+        alert(`${data.message}`);
       }
     } catch (error) {
       console.error("Error en registro:", error);

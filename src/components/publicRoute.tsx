@@ -1,22 +1,19 @@
-import { ReactNode, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/router";
 import useAuth from "../hooks/useAuth";
 
-interface PublicRouteProps {
-  children: ReactNode;
-}
-
-function PublicRoute({ children }: PublicRouteProps) {
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/dashboard");
+    if (isAuthenticated === true) {
+      router.replace("/dashboard");
     }
   }, [isAuthenticated, router]);
 
-  return !isAuthenticated ? <>{children}</> : null;
-}
+  if (isAuthenticated === true) return null;
+  return <>{children}</>;
+};
 
 export default PublicRoute;

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import useAuth from "../hooks/useAuth"; // Ajusta la ruta si es necesario
-import Router from "next/router";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -33,8 +32,7 @@ function Login() {
     }
 
     try {
-      const response = await fetch("http://localhost:3005/login", {
-        // ✅ Cambio de URL
+      const response = await fetch("https://biproyecto4.com.mx/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,9 +49,10 @@ function Login() {
 
       if (data.access_token) {
         login(data.access_token);
+
         console.log("Token correcto");
       } else {
-        alert("No se recibió un token válido");
+        alert(`${data.message}`);
       }
     } catch (error) {
       console.error("Error en login:", error);
