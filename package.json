@@ -11,7 +11,9 @@
   "dependencies": {
     "@stripe/stripe-js": "^7.8.0",
     "daisyui": "^5.0.50",
+    "lucide-react": "^0.540.0",
     "next": "^14.2.31",
+    "openpay-js": "^1.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "stripe": "^18.4.0"

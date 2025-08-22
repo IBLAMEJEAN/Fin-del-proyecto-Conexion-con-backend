@@ -2,14 +2,26 @@ import { useState } from "react";
 import Link from "next/link";
 
 function registerForm() {
+  const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [address, setAddress] = useState({
+    city: "",
+    state: "",
+    street: "",
+    cologne: "",
+    postalCode: "",
+    countryCode: "",
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !lastName || !birthDate || !phoneNumber) {
       alert("Todos los campos son obligatorios");
       return;
     }
@@ -30,14 +42,38 @@ function registerForm() {
       return;
     }
 
+    setStep(2);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+
+    if (!address.city || !address.state || !address.street || !address.postalCode || !address.countryCode || !address.cologne) {
+      alert("Todos los campos de dirección son obligatorios");
+      return;
+    }
+    //https://biproyecto4.com.mx/user
+    // http://192.168.8.13:3000/create-customer/openPayClient
     try {
-      const response = await fetch("https://biproyecto4.com.mx/user", {
+      const dataToSend = JSON.stringify({ 
+          name: name, 
+          lastName: lastName, 
+          birthDate: birthDate, 
+          email: email, 
+          password: password, 
+          phoneNumber: phoneNumber,
+          address: address
+      });
+      console.log("Data to send:", dataToSend);
+      const response = await fetch("http://192.168.1.105:3000/create-customer/openPayClient", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: name, email: email, password: password }),
+        body: dataToSend
       });
+      console.log("Response:", response);
 
       if (!response.ok) {
         alert("Error al registrar usuario");
@@ -60,60 +96,180 @@ function registerForm() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm"
-      >
-        <h2 className="text-2xl font-bold mb-4 text-center">Registro</h2>
-        <div className="mb-4">
-          <label className="block mb-1 text-gray-700">Nombre:</label>
-          <input
-            type="text"
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nombre"
-          ></input>
-        </div>
-        <div className="mb-4">
-          <label className="block mb-1 text-gray-700">Email:</label>
-          <input
-            type="email"
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="ejemplo@correo.com"
-          ></input>
-        </div>
-        <div className="mb-4">
-          <label className="block mb-1 text-gray-700">Contraseña:</label>
-          <input
-            type="password"
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-          ></input>
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded
-       hover:bg-blue-600 transition mb-4"
+      <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/fondoRegistro.webp')" }}></div>
+      
+      {step === 1 ? (
+        <form
+          onSubmit={handleNext}
+          className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm z-10"
         >
-          Registrar
-        </button>
+          <h2 className="text-2xl font-bold mb-4 text-center">Registro - Paso 1</h2>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Nombre:</label>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Juan Carlos"
+            ></input>
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Apellido(s):</label>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Perez Lopez"
+            ></input>
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Fecha de Nacimiento:</label>
+            <input
+              type="date"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+              placeholder="Fecha de Nacimiento"
+            ></input>
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Email:</label>
+            <input
+              type="email"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ejemplo@correo.com"
+            ></input>
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Contraseña:</label>
+            <input
+              type="password"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            ></input>
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Numero de telefono:</label>
+            <input
+              type="tel"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="123-456-7890"
+            ></input>
+          </div>
 
-        <Link href="/login">
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white py-2 rounded
+         hover:bg-blue-600 transition mb-4"
+          >
+            Siguiente
+          </button>
+
+          <Link href="/login">
+            <button
+              type="button"
+              className="w-full text-sky-500 text-xs
+             hover:text-sky-800 transition"
+            >
+              Iniciar sesión
+            </button>
+          </Link>
+        </form>
+      ) : (
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm z-10"
+        >
+          <h2 className="text-2xl font-bold mb-4 text-center">Registro - Paso 2</h2>
+          <p className="text-sm text-gray-600 mb-4 text-center">Información de dirección</p>
+          
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Ciudad:</label>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={address.city}
+              onChange={(e) => setAddress({...address, city: e.target.value})}
+              placeholder="Ciudad"
+            ></input>
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Estado/Provincia:</label>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={address.state}
+              onChange={(e) => setAddress({...address, state: e.target.value})}
+              placeholder="Estado o Provincia"
+            ></input>
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Dirección Línea 1:</label>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={address.street}
+              onChange={(e) => setAddress({...address, street: e.target.value})}
+              placeholder="Calle y número"
+            ></input>
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Dirección Línea 2:</label>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={address.cologne}
+              onChange={(e) => setAddress({...address, cologne: e.target.value})}
+              placeholder="Colonia, apartamento, etc."
+            ></input>
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Código Postal:</label>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={address.postalCode}
+              onChange={(e) => setAddress({...address, postalCode: e.target.value})}
+              placeholder="12345"
+            ></input>
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Código de País:</label>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={address.countryCode}
+              onChange={(e) => setAddress({...address, countryCode: e.target.value})}
+              placeholder="MX"
+            ></input>
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-green-500 text-white py-2 rounded
+         hover:bg-green-600 transition mb-4"
+          >
+            Completar Registro
+          </button>
+
           <button
             type="button"
-            className="w-full text-sky-500 text-xs
-           hover:text-sky-800 transition"
+            onClick={() => setStep(1)}
+            className="w-full text-gray-500 text-xs
+           hover:text-gray-800 transition"
           >
-            Iniciar sesión
+            Volver al paso anterior
           </button>
-        </Link>
-      </form>
+        </form>
+      )}
     </div>
   );
 }

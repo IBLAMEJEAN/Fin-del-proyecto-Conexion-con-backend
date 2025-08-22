@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useState } from "react";
-import useAuth from "../hooks/useAuth"; // Ajusta la ruta si es necesario
+import useAuth from "../hooks/useAuth"; 
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -62,9 +62,10 @@ function Login() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/fondoRegistro.webp')" }}></div>
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm"
+        className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm z-10"
       >
         <h2 className="text-2xl justify-center  p-2.5 m-1.5 font-bold mb-4 text-center">
           Iniciar sesión

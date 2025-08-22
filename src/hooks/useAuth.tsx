@@ -7,6 +7,7 @@ interface UserInfo {
   email?: string;
   roles?: string[];
   exp: number;
+  customerId?: string;
 }
 
 const useAuth = () => {
@@ -56,6 +57,7 @@ const useAuth = () => {
         email: payload.email,
         roles: payload.roles || payload.role,
         exp: payload.exp,
+        customerId: payload.customerId,
       };
     } catch (error) {
       console.error("Error decodificando token:", error);
@@ -94,6 +96,7 @@ const useAuth = () => {
   const login = (token: string) => {
     localStorage.setItem("token", token);
     const userInfo = getUserFromToken(token);
+
 
     if (userInfo) {
       setIsAuthenticated(true);

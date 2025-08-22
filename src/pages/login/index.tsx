@@ -1,4 +1,4 @@
-import LoginForm from "@/components/loginForm"; // ✅ Importación correcta (nota la mayúscula)
+import LoginForm from "@/components/loginForm"; 
 import PublicRoute from "../../components/publicRoute";
 
 export default function Login() {
@@ -6,5 +6,5 @@ export default function Login() {
     <PublicRoute>
       <LoginForm />
     </PublicRoute>
-  ); // ✅ Renderizando como componente JSX
+  ); 
 }
