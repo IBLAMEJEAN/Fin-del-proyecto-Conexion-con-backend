@@ -1,81 +1,69 @@
-import React from 'react';
-import Card from '../../components/card';
-import Router from 'next/router';
+import React, { useEffect, useState } from "react";
+import Card from "../../components/card";
+import Router from "next/router";
+
+interface Producto {
+  id: string | number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  moneda: string;
+  categoria: string;
+  disponible: boolean;
+  imageUrl?: string;
+}
+
+const DESCRIPCION_LIMITE = 100;
 
 const ProductosPage = () => {
-  // Array de productos de ejemplo
-  const productos = [
-    {
-      id: 1,
-      nombre: "Laptop Gaming",
-      precio: "$1,299.99",
-      imageUrl: "/images/team.jpg", // Usando una de tus imágenes existentes
-      descripcion: "Laptop de alto rendimiento para gaming"
-    },
-    {
-      id: 2,
-      nombre: "Smartphone Pro",
-      precio: "$899.99",
-      imageUrl: "/images/angelopolis.png",
-      descripcion: "Teléfono inteligente de última generación"
-    },
-    {
-      id: 3,
-      nombre: "Auriculares Wireless",
-      precio: "$199.99",
-      imageUrl: "/images/circuito.png",
-      descripcion: "Auriculares inalámbricos con cancelación de ruido"
-    },
-    {
-      id: 4,
-      nombre: "Tablet Pro",
-      precio: "$699.99",
-      imageUrl: "/images/lineasDeNegocio.jpg",
-      descripcion: "Tablet profesional para trabajo y entretenimiento"
-    },
-    {
-      id: 5,
-      nombre: "Smartwatch",
-      precio: "$299.99",
-      imageUrl: "/images/noticiasyPrensa.jpg",
-      descripcion: "Reloj inteligente con monitoreo de salud"
-    },
-    {
-      id: 6,
-      nombre: "Cámara DSLR",
-      precio: "$1,199.99",
-      imageUrl: "/images/transparenciaYRendicionDeCuentas.jpeg",
-      descripcion: "Cámara profesional para fotografía"
-    },
-    {
-      id: 7,
-      nombre: "Monitor 4K",
-      precio: "$399.99",
-      imageUrl: "/images/team.jpg",
-      descripcion: "Monitor ultra HD de 27 pulgadas"
-    },
-    {
-      id: 8,
-      nombre: "Teclado Mecánico",
-      precio: "$149.99",
-      imageUrl: "/images/angelopolis.png",
-      descripcion: "Teclado mecánico RGB para gaming"
-    }
-  ];
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [expandido, setExpandido] = useState<{ [id: string]: boolean }>({});
 
-  const handleComprarAhora = (producto: any) => {
+  useEffect(() => {
+    // Cambia la URL por la de tu API real
+    fetch("http://localhost:3001/products")
+      .then((res) => res.json())
+      .then((data) => setProductos(data))
+      .catch((err) => console.error("Error al obtener productos:", err));
+  }, []);
+
+  const handleMostrarMas = (id: string | number) => {
+    setExpandido((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleComprarAhora = (producto: Producto) => {
     // Extrae el número del precio (ej: "$1,299.99" → 1299.99)
-    const amount = Number(producto.precio.replace(/[^0-9.]/g, ""));
-    
+    // const amount = Number(producto.precio.replace(/[^0-9.]/g, ""));
+
     // Construye la URL con todos los parámetros del producto
     const queryParams = new URLSearchParams({
-      amount: amount.toString(),
-      title: producto.nombre,
-      description: producto.descripcion,
-      image: producto.imageUrl
+      id: producto.id.toString(),
+      nombre: producto.nombre,
+      descripcion: producto.descripcion,
+      precio: producto.precio.toString(),
+      moneda: producto.moneda,
+      categoria: producto.categoria,
+      disponible: producto.disponible.toString(),
     });
-    
+
     Router.push(`/payment?${queryParams.toString()}`);
+  };
+  const handleVerProducto = (producto: Producto) => {
+    // Extrae el número del precio (ej: "$1,299.99" → 1299.99)
+    // const amount = Number(producto.precio.replace(/[^0-9.]/g, ""));
+
+    // Construye la URL con todos los parámetros del producto
+    const queryParams = new URLSearchParams({
+      id: producto.id.toString(),
+      nombre: producto.nombre,
+      descripcion: producto.descripcion,
+      precio: producto.precio.toString(),
+      moneda: producto.moneda,
+      categoria: producto.categoria,
+      disponible: producto.disponible.toString(),
+    });
+
+    Router.push(`/product?${queryParams.toString()}`);
   };
 
   return (
@@ -93,42 +81,77 @@ const ProductosPage = () => {
 
         {/* Grid de productos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {productos.map((producto) => (
-            <div key={producto.id} className="group cursor-pointer">
-              {/* Componente Card */}
-              <Card 
-                imageUrl={producto.imageUrl}
-                imageAlt={producto.nombre}
-                className="hover:shadow-lg transition-shadow duration-300"
-              />
-              
-              {/* Información del producto */}
-              <div className="mt-4 p-4 bg-white rounded-b-lg shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {producto.nombre}
-                </h3>
-                <p className="text-gray-600 text-sm mb-3">
-                  {producto.descripcion}
-                </p>
-                <div className="flex flex-col gap-3">
-                  <span className="text-xl font-bold text-blue-600 text-center">
-                    {producto.precio}
-                  </span>
-                  <div className="flex gap-2">
-                    <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300">
-                      Agregar al carrito
-                    </button>
-                    <button
-                      onClick={() => handleComprarAhora(producto)}
-                      className="flex-1 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300 font-semibold"
-                    >
-                      Comprar ahora
-                    </button>
+          {productos.map((producto) => {
+            const isLong = producto.descripcion.length > DESCRIPCION_LIMITE;
+            const isExpanded = expandido[producto.id];
+            const descripcionCorta =
+              isLong && !isExpanded
+                ? producto.descripcion.slice(0, DESCRIPCION_LIMITE) + "..."
+                : producto.descripcion;
+
+            return (
+              <div
+                key={producto.id}
+                className="group cursor-pointer flex flex-col h-full"
+              >
+                {/* Componente Card */}
+
+                <Card
+                  imageUrl={producto.imageUrl ?? ""}
+                  imageAlt={producto.nombre ?? ""}
+                  className="hover:shadow-lg transition-shadow duration-300 h-56"
+                  onClick={() => handleVerProducto(producto)}
+                />
+                {/* Información del producto */}
+                <div
+                  className={`mt-4 p-4 bg-white rounded-b-lg shadow-sm flex flex-col flex-1 transition-all duration-300`}
+                  style={{
+                    minHeight: isLong && !isExpanded ? "260px" : undefined,
+                  }}
+                >
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    {producto.nombre}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-3">
+                    {descripcionCorta}
+                    {isLong && (
+                      <button
+                        className="ml-2 text-blue-500 hover:underline text-xs"
+                        onClick={() => handleMostrarMas(producto.id)}
+                      >
+                        {isExpanded ? "Mostrar menos" : "Mostrar más"}
+                      </button>
+                    )}
+                  </p>
+                  <div className="flex flex-col gap-3 mt-auto">
+                    <span className="text-xl font-bold text-blue-600 text-center">
+                      {producto.precio} {producto.moneda}
+                    </span>
+                    {producto.disponible ? (
+                      <span className="flex-1 text-sm text-green-600 px-3 py-2 rounded-lg text-center">
+                        En stock
+                      </span>
+                    ) : (
+                      <span className="flex-1 text-sm text-red-600 px-3 py-2 rounded-lg text-center">
+                        Agotado
+                      </span>
+                    )}
+                    <div className="flex gap-2">
+                      <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300">
+                        Agregar al carrito
+                      </button>
+                      <button
+                        onClick={() => handleComprarAhora(producto)}
+                        className="flex-1 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300 font-semibold"
+                      >
+                        Comprar ahora
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Sección adicional */}

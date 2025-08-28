@@ -7,6 +7,7 @@ interface CardProps {
   imageUrl: string;
   imageAlt: string;
   className?: string;
+  onClick?: () => void; // Nueva prop para manejar el clic
 }
 
 const Card: React.FC<CardProps> = ({ imageUrl, className }) => {
