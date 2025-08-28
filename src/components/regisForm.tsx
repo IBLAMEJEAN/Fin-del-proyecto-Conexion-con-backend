@@ -18,6 +18,9 @@ function registerForm() {
     countryCode: "",
   });
 
+  // Nuevo estado para manejar los mensajes de error de forma más amigable
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -47,25 +50,25 @@ function registerForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setErrorMessage(null); // Limpiar cualquier error anterior
 
-    if (!address.city || !address.state || !address.street || !address.postalCode || !address.countryCode || !address.cologne) {
-      alert("Todos los campos de dirección son obligatorios");
+    // Validación de dirección: todos los campos obligatorios y el código de país debe tener 2 caracteres
+    if (!address.city || !address.state || !address.street || !address.postalCode || !address.cologne || !address.countryCode || address.countryCode.length !== 2) {
+      setErrorMessage("Todos los campos de dirección son obligatorios y el Código de País debe tener 2 caracteres (ej. MX)");
       return;
     }
-    //https://biproyecto4.com.mx/user
-    // http://192.168.8.13:3000/create-customer/openPayClient
+
     try {
-      const dataToSend = JSON.stringify({ 
-          name: name, 
-          lastName: lastName, 
-          birthDate: birthDate, 
-          email: email, 
-          password: password, 
-          phoneNumber: phoneNumber,
-          address: address
+      const dataToSend = JSON.stringify({
+        name: name,
+        lastName: lastName,
+        birthDate: birthDate,
+        email: email,
+        password: password,
+        phoneNumber: phoneNumber,
+        address: address
       });
-      console.log("Data to send:", dataToSend);
+
       const response = await fetch("http://192.168.1.105:3000/create-customer/openPayClient", {
         method: "POST",
         headers: {
@@ -73,31 +76,36 @@ function registerForm() {
         },
         body: dataToSend
       });
-      console.log("Response:", response);
 
+      // ⚡ Manejo de error con mensaje detallado
       if (!response.ok) {
-        alert("Error al registrar usuario");
+        const errorData = await response.json();
+        if (errorData.message) {
+          alert(`Informacion del error es: ${errorData.message[0]}`);
+        } else {
+          alert(errorData.message || "Error desconocido en el registro");
+        }
         return;
       }
 
+      // Si la respuesta es exitosa
       const data = await response.json();
 
       if (data.accessToken) {
         localStorage.setItem("token", data.accessToken);
         window.location.href = "/login";
       } else {
-        alert(`${data.message}`);
+        setErrorMessage(data.message || "Registro completado, pero no se recibió el token.");
       }
     } catch (error) {
       console.error("Error en registro:", error);
-      alert("Error de conexión con el servidor");
+      setErrorMessage("Error de conexión con el servidor. Por favor, revisa tu conexión a internet.");
     }
   };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/fondoRegistro.webp')" }}></div>
-      
+
       {step === 1 ? (
         <form
           onSubmit={handleNext}
@@ -190,14 +198,14 @@ function registerForm() {
         >
           <h2 className="text-2xl font-bold mb-4 text-center">Registro - Paso 2</h2>
           <p className="text-sm text-gray-600 mb-4 text-center">Información de dirección</p>
-          
+
           <div className="mb-4">
             <label className="block mb-1 text-gray-700">Ciudad:</label>
             <input
               type="text"
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={address.city}
-              onChange={(e) => setAddress({...address, city: e.target.value})}
+              onChange={(e) => setAddress({ ...address, city: e.target.value })}
               placeholder="Ciudad"
             ></input>
           </div>
@@ -207,7 +215,7 @@ function registerForm() {
               type="text"
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={address.state}
-              onChange={(e) => setAddress({...address, state: e.target.value})}
+              onChange={(e) => setAddress({ ...address, state: e.target.value })}
               placeholder="Estado o Provincia"
             ></input>
           </div>
@@ -217,7 +225,7 @@ function registerForm() {
               type="text"
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={address.street}
-              onChange={(e) => setAddress({...address, street: e.target.value})}
+              onChange={(e) => setAddress({ ...address, street: e.target.value })}
               placeholder="Calle y número"
             ></input>
           </div>
@@ -227,7 +235,7 @@ function registerForm() {
               type="text"
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={address.cologne}
-              onChange={(e) => setAddress({...address, cologne: e.target.value})}
+              onChange={(e) => setAddress({ ...address, cologne: e.target.value })}
               placeholder="Colonia, apartamento, etc."
             ></input>
           </div>
@@ -237,7 +245,7 @@ function registerForm() {
               type="text"
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={address.postalCode}
-              onChange={(e) => setAddress({...address, postalCode: e.target.value})}
+              onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}
               placeholder="12345"
             ></input>
           </div>
@@ -245,11 +253,19 @@ function registerForm() {
             <label className="block mb-1 text-gray-700">Código de País:</label>
             <input
               type="text"
+              inputMode="text"
+              maxLength={2}
+              pattern="[A-Za-z]{2}"
+              title="Introduce 2 letras (ej. MX)"
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={address.countryCode}
-              onChange={(e) => setAddress({...address, countryCode: e.target.value})}
+              onChange={(e) =>
+                // Forzar mayúsculas y limitar a 2 caracteres
+                setAddress({ ...address, countryCode: e.target.value.toUpperCase().slice(0, 2) })
+              }
               placeholder="MX"
-            ></input>
+            />
+            <p className="text-xs text-gray-500 mt-1">Usa 2 letras, por ejemplo: MX</p>
           </div>
 
           <button
