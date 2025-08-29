@@ -1,26 +1,48 @@
 import React, { useEffect, useState } from "react";
 import Card from "../../components/card";
-import Router from "next/router";
+import Link from "next/link";
 
 interface Producto {
   id: string | number;
   nombre: string;
   descripcion: string;
+  imageUrl?: string;
+  cantidad: number;
   precio: number;
   moneda: string;
   categoria: string;
   disponible: boolean;
-  imageUrl?: string;
 }
 
 const DESCRIPCION_LIMITE = 100;
 
+const getInitialVisible = () => {
+  if (typeof window !== "undefined") {
+    if (window.innerWidth < 768) return 4; // sm
+    return 8; // md y lg
+  }
+  return 8;
+};
+
 const ProductosPage = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [expandido, setExpandido] = useState<{ [id: string]: boolean }>({});
+  const [visibleCount, setVisibleCount] = useState(getInitialVisible());
+  const [initialVisible, setInitialVisible] = useState(getInitialVisible());
 
+  // Ajusta visibleCount si el usuario cambia el tamaño de la pantalla
   useEffect(() => {
-    // Cambia la URL por la de tu API real
+    const handleResize = () => {
+      const initial = window.innerWidth < 768 ? 4 : 8;
+      setInitialVisible(initial);
+      setVisibleCount((prev) => (prev > initial ? prev : initial));
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Obtención de todos los productos desde la API
+  useEffect(() => {
     fetch("http://localhost:3001/products")
       .then((res) => res.json())
       .then((data) => setProductos(data))
@@ -31,40 +53,15 @@ const ProductosPage = () => {
     setExpandido((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleComprarAhora = (producto: Producto) => {
-    // Extrae el número del precio (ej: "$1,299.99" → 1299.99)
-    // const amount = Number(producto.precio.replace(/[^0-9.]/g, ""));
-
-    // Construye la URL con todos los parámetros del producto
-    const queryParams = new URLSearchParams({
-      id: producto.id.toString(),
-      nombre: producto.nombre,
-      descripcion: producto.descripcion,
-      precio: producto.precio.toString(),
-      moneda: producto.moneda,
-      categoria: producto.categoria,
-      disponible: producto.disponible.toString(),
-    });
-
-    Router.push(`/payment?${queryParams.toString()}`);
+  const handleVerMasProductos = () => {
+    setVisibleCount((prev) => Math.min(prev + 4, productos.length));
   };
-  const handleVerProducto = (producto: Producto) => {
-    // Extrae el número del precio (ej: "$1,299.99" → 1299.99)
-    // const amount = Number(producto.precio.replace(/[^0-9.]/g, ""));
 
-    // Construye la URL con todos los parámetros del producto
-    const queryParams = new URLSearchParams({
-      id: producto.id.toString(),
-      nombre: producto.nombre,
-      descripcion: producto.descripcion,
-      precio: producto.precio.toString(),
-      moneda: producto.moneda,
-      categoria: producto.categoria,
-      disponible: producto.disponible.toString(),
-    });
-
-    Router.push(`/product?${queryParams.toString()}`);
+  const handleVerMenosProductos = () => {
+    setVisibleCount(initialVisible);
   };
+
+  const productosVisibles = productos.slice(0, visibleCount);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -81,7 +78,7 @@ const ProductosPage = () => {
 
         {/* Grid de productos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {productos.map((producto) => {
+          {productosVisibles.map((producto) => {
             const isLong = producto.descripcion.length > DESCRIPCION_LIMITE;
             const isExpanded = expandido[producto.id];
             const descripcionCorta =
@@ -100,7 +97,6 @@ const ProductosPage = () => {
                   imageUrl={producto.imageUrl ?? ""}
                   imageAlt={producto.nombre ?? ""}
                   className="hover:shadow-lg transition-shadow duration-300 h-56"
-                  onClick={() => handleVerProducto(producto)}
                 />
                 {/* Información del producto */}
                 <div
@@ -129,7 +125,7 @@ const ProductosPage = () => {
                     </span>
                     {producto.disponible ? (
                       <span className="flex-1 text-sm text-green-600 px-3 py-2 rounded-lg text-center">
-                        En stock
+                        {producto.cantidad} En stock
                       </span>
                     ) : (
                       <span className="flex-1 text-sm text-red-600 px-3 py-2 rounded-lg text-center">
@@ -137,15 +133,32 @@ const ProductosPage = () => {
                       </span>
                     )}
                     <div className="flex gap-2">
-                      <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300">
+                      <button className="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors duration-300">
                         Agregar al carrito
                       </button>
-                      <button
-                        onClick={() => handleComprarAhora(producto)}
-                        className="flex-1 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300 font-semibold"
-                      >
-                        Comprar ahora
-                      </button>
+                      {producto.disponible && (
+                        <Link
+                          href={{
+                            pathname: "/payment",
+                            query: {
+                              id: producto.id,
+                              nombre: producto.nombre,
+                              descripcion: producto.descripcion,
+                              imageUrl: producto.imageUrl,
+                              cantidad: producto.cantidad,
+                              precio: producto.precio,
+                              moneda: producto.moneda,
+                              categoria: producto.categoria,
+                              disponible: producto.disponible,
+                            },
+                          }}
+                          passHref
+                        >
+                          <button className="w-full bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors duration-300">
+                            Comprar ahora
+                          </button>
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -154,11 +167,24 @@ const ProductosPage = () => {
           })}
         </div>
 
-        {/* Sección adicional */}
-        <div className="text-center mt-12">
-          <button className="bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors duration-300">
-            Ver más productos
-          </button>
+        {/* Botones de ver más/ver menos */}
+        <div className="text-center mt-12 flex flex-col sm:flex-row justify-center gap-4">
+          {visibleCount < productos.length && (
+            <button
+              className="w-full sm:w-auto bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors duration-300"
+              onClick={handleVerMasProductos}
+            >
+              Ver más productos
+            </button>
+          )}
+          {visibleCount > initialVisible && (
+            <button
+              className="w-full sm:w-auto bg-gray-500 hover:bg-gray-700 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors duration-300"
+              onClick={handleVerMenosProductos}
+            >
+              Ver menos productos
+            </button>
+          )}
         </div>
       </div>
     </div>

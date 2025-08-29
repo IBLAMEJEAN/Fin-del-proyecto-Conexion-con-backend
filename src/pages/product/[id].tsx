@@ -43,10 +43,13 @@ const ProductDetailPage = () => {
             imageAlt={producto.nombre ?? ""}
             className="w-full h-64 mb-6"
           />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">{producto.nombre}</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            {producto.nombre}
+          </h2>
           <p className="text-gray-600 text-base mb-4">{producto.descripcion}</p>
           <p className="text-sm text-gray-500 mb-1">
-            <span className="font-semibold">Categoría:</span> {producto.categoria}
+            <span className="font-semibold">Categoría:</span>{" "}
+            {producto.categoria}
           </p>
           <p className="text-sm text-gray-500 mb-1">
             <span className="font-semibold">Disponibilidad:</span>{" "}
